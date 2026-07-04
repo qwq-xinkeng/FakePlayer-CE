@@ -1,6 +1,6 @@
 plugins {
     // 1. 引入真正的 Shadow 打包插件
-    id("com.gradleup.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.5"
 }
 
 java {
