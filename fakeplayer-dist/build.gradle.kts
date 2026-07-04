@@ -1,34 +1,46 @@
-name: Build FakePlayer-CE (Fixed)
+plugins {
+    // 1. 引入真正的 Shadow 打包插件
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+}
 
-on:
-  push:
-    branches: [ "master", "main" ]
-  workflow_dispatch: 
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+dependencies {
+    // 2. 将原先的 compileOnly 全部改为 implementation
+    // 这样 Shadow 插件才知道要把它们以及它们的底层第三方依赖（如 Guice）打包进去
+    implementation(project(":fakeplayer-core"))
+    implementation(project(":fakeplayer-api"))
+    implementation(project(":fakeplayer-v1_20_1"))
+    implementation(project(":fakeplayer-v1_20_2"))
+    implementation(project(":fakeplayer-v1_20_3"))
+    implementation(project(":fakeplayer-v1_20_4"))
+    implementation(project(":fakeplayer-v1_20_5"))
+    implementation(project(":fakeplayer-v1_20_6"))
+    implementation(project(":fakeplayer-v1_21"))
+    implementation(project(":fakeplayer-v1_21_1"))
+    implementation(project(":fakeplayer-v1_21_3"))
+    implementation(project(":fakeplayer-v1_21_4"))
+    implementation(project(":fakeplayer-v1_21_5"))
+    implementation(project(":fakeplayer-v1_21_6"))
+    implementation(project(":fakeplayer-v1_21_7"))
+    implementation(project(":fakeplayer-v1_21_8"))
+    implementation(project(":fakeplayer-v1_21_9"))
+    implementation(project(":fakeplayer-v1_21_10"))
+    implementation(project(":fakeplayer-v1_21_11"))
+}
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+// 3. 配置真正的 shadowJar 任务
+tasks.shadowJar {
+    archiveFileName.set("FakePlayer-CE-Fixed.jar")
+    
+    // 排除签名文件以防止 jar 破损报错
+    exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/*.MF")
+}
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-
-    # 新增：配置 GitHub 官方的 Gradle 环境
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-
-    # 修改：直接使用 gradle 命令，不再依赖 ./gradlew，也删除了 chmod 授权那一步
-    - name: Build with Gradle
-      run: gradle clean :fakeplayer-dist:shadowJar
-
-    - name: Upload Plugin Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: FakePlayer-CE-Fixed-Plugin
-        path: fakeplayer-dist/build/libs/FakePlayer-CE-Fixed.jar
+// 让 build 命令直接触发 shadowJar
+tasks.assemble {
+    dependsOn(tasks.shadowJar)
+}
