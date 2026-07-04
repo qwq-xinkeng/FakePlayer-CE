@@ -1,40 +1,46 @@
 plugins {
-    java
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.19" apply false
+    // 1. 引入真正的 Shadow 打包插件
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-allprojects {
-    group = "io.github.hello09x.fakeplayer"
-    version = "fp.build1"
-
-    repositories {
-        mavenCentral()
-        maven("https://libraries.minecraft.net/")
-        maven("https://repo.papermc.io/repository/maven-public/")
-        maven("https://oss.sonatype.org/content/groups/public/")
-        maven("https://repo.dmulloy2.net/repository/public/")
-        maven("https://jitpack.io")
-        maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-    }
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
-subprojects {
-    apply(plugin = "java")
+dependencies {
+    // 2. 将原先的 compileOnly 全部改为 implementation
+    // 这样 Shadow 插件才知道要把它们以及它们的底层第三方依赖（如 Guice）打包进去
+    implementation(project(":fakeplayer-core"))
+    implementation(project(":fakeplayer-api"))
+    implementation(project(":fakeplayer-v1_20_1"))
+    implementation(project(":fakeplayer-v1_20_2"))
+    implementation(project(":fakeplayer-v1_20_3"))
+    implementation(project(":fakeplayer-v1_20_4"))
+    implementation(project(":fakeplayer-v1_20_5"))
+    implementation(project(":fakeplayer-v1_20_6"))
+    implementation(project(":fakeplayer-v1_21"))
+    implementation(project(":fakeplayer-v1_21_1"))
+    implementation(project(":fakeplayer-v1_21_3"))
+    implementation(project(":fakeplayer-v1_21_4"))
+    implementation(project(":fakeplayer-v1_21_5"))
+    implementation(project(":fakeplayer-v1_21_6"))
+    implementation(project(":fakeplayer-v1_21_7"))
+    implementation(project(":fakeplayer-v1_21_8"))
+    implementation(project(":fakeplayer-v1_21_9"))
+    implementation(project(":fakeplayer-v1_21_10"))
+    implementation(project(":fakeplayer-v1_21_11"))
+}
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
-        }
-    }
+// 3. 配置真正的 shadowJar 任务
+tasks.shadowJar {
+    archiveFileName.set("FakePlayer-CE-Fixed.jar")
+    
+    // 排除签名文件以防止 jar 破损报错
+    exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/*.MF")
+}
 
-    dependencies {
-        compileOnly("org.projectlombok:lombok:1.18.36")
-        annotationProcessor("org.projectlombok:lombok:1.18.36")
-        compileOnly("com.mojang:authlib:4.0.43")
-        compileOnly("dev.jorel:commandapi-paper-core:11.0.0")
-        compileOnly("com.mojang:brigadier:1.1.8")
-        compileOnly("io.netty:netty-transport:4.1.82.Final")
-    }
+// 让 build 命令直接触发 shadowJar
+tasks.assemble {
+    dependsOn(tasks.shadowJar)
 }
