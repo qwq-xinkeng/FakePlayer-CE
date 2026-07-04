@@ -1,69 +1,34 @@
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
+name: Build FakePlayer-CE (Fixed)
 
-dependencies {
-    compileOnly(project(":fakeplayer-core"))
-    compileOnly(project(":fakeplayer-api"))
-    compileOnly(project(":fakeplayer-v1_20_1"))
-    compileOnly(project(":fakeplayer-v1_20_2"))
-    compileOnly(project(":fakeplayer-v1_20_3"))
-    compileOnly(project(":fakeplayer-v1_20_4"))
-    compileOnly(project(":fakeplayer-v1_20_5"))
-    compileOnly(project(":fakeplayer-v1_20_6"))
-    compileOnly(project(":fakeplayer-v1_21"))
-    compileOnly(project(":fakeplayer-v1_21_1"))
-    compileOnly(project(":fakeplayer-v1_21_3"))
-    compileOnly(project(":fakeplayer-v1_21_4"))
-    compileOnly(project(":fakeplayer-v1_21_5"))
-    compileOnly(project(":fakeplayer-v1_21_6"))
-    compileOnly(project(":fakeplayer-v1_21_7"))
-    compileOnly(project(":fakeplayer-v1_21_8"))
-    compileOnly(project(":fakeplayer-v1_21_9"))
-    compileOnly(project(":fakeplayer-v1_21_10"))
-    compileOnly(project(":fakeplayer-v1_21_11"))
-}
+on:
+  push:
+    branches: [ "master", "main" ]
+  workflow_dispatch: 
 
-tasks.register<Jar>("shadowJar") {
-    archiveFileName.set("fakeplayer-fp.build1.jar")
-    dependsOn(":fakeplayer-core:build")
-    dependsOn(":fakeplayer-api:build")
-    dependsOn(":fakeplayer-v1_20_1:build")
-    dependsOn(":fakeplayer-v1_20_2:build")
-    dependsOn(":fakeplayer-v1_20_3:build")
-    dependsOn(":fakeplayer-v1_20_4:build")
-    dependsOn(":fakeplayer-v1_20_5:build")
-    dependsOn(":fakeplayer-v1_20_6:build")
-    dependsOn(":fakeplayer-v1_21:build")
-    dependsOn(":fakeplayer-v1_21_1:build")
-    dependsOn(":fakeplayer-v1_21_3:build")
-    dependsOn(":fakeplayer-v1_21_4:build")
-    dependsOn(":fakeplayer-v1_21_5:build")
-    dependsOn(":fakeplayer-v1_21_6:build")
-    dependsOn(":fakeplayer-v1_21_7:build")
-    dependsOn(":fakeplayer-v1_21_8:build")
-    dependsOn(":fakeplayer-v1_21_9:build")
-    dependsOn(":fakeplayer-v1_21_10:build")
-    dependsOn(":fakeplayer-v1_21_11:build")
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-    from(project(":fakeplayer-core").sourceSets.main.get().output)
-    from(project(":fakeplayer-api").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_20_1").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_20_2").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_20_3").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_20_4").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_20_5").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_20_6").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_1").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_3").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_4").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_5").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_6").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_7").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_8").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_9").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_10").sourceSets.main.get().output)
-    from(project(":fakeplayer-v1_21_11").sourceSets.main.get().output)
-}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    # 新增：配置 GitHub 官方的 Gradle 环境
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
+    # 修改：直接使用 gradle 命令，不再依赖 ./gradlew，也删除了 chmod 授权那一步
+    - name: Build with Gradle
+      run: gradle clean :fakeplayer-dist:shadowJar
+
+    - name: Upload Plugin Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: FakePlayer-CE-Fixed-Plugin
+        path: fakeplayer-dist/build/libs/FakePlayer-CE-Fixed.jar
